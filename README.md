@@ -1,5 +1,3 @@
-All this exercice is counting on having a k8s cluster on the current context.
-You can use docker for desktop k8s context.
 
 Run It
 ------
