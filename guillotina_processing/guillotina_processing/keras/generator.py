@@ -76,11 +76,13 @@ class DataTextGenerator(keras.utils.Sequence):
             label = await ILabelExtractor(obj)()
             if label not in self.labels:
                 self.labels.append(label)
-            y[i] = self.labels.index(label)
+            index_temp = self.labels.index(label)
+            y[i] = 0 if index_temp > 1 else index_temp
 
         X = keras.preprocessing.sequence.pad_sequences(
             X,
             value=self.vocabulary.dictionary["<PAD>"],
             padding='post',
             maxlen=self.dim)
-        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+        category = keras.utils.to_categorical(y, num_classes=self.n_classes)
+        return X, category

@@ -2,7 +2,7 @@ ipython
 jupyter
 ipykernel
 guillotina_elasticsearch>=3.0.26
-guillotina_cms>=1.0a10
+guillotina_cms>=1.0a12
 guillotina>=4.2.7
 Pillow
 h5py

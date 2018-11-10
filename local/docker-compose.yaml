@@ -40,14 +40,10 @@ services:
     volumes:
       - ${PWD}/local/config.yaml:/usr/src/app/config.yaml
   jupyter:
-    image: guillotina/guillotina_notebook:latest
+    image: gprocessing
     ports:
     - "8888:8888"
     - "6006:6006"
-    links:
-     - postgres
-     - redis
-     - elasticsearch
     volumes:
       - ${PWD}/local/config.yaml:/app/config.yaml
       - ${PWD}/notebooks:/app/notebooks
