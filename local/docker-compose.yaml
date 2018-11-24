@@ -40,7 +40,7 @@ services:
     volumes:
       - ${PWD}/local/config.yaml:/usr/src/app/config.yaml
   jupyter:
-    image: gprocessing
+    image: ramonnb/guillotina_processing:latest
     ports:
     - "8888:8888"
     - "6006:6006"
