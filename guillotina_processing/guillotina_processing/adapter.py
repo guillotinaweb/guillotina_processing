@@ -1,5 +1,7 @@
 from guillotina import configure
+from guillotina.catalog.utils import parse_query
 from guillotina.interfaces import IResource
+from guillotina.utils import find_container
 from guillotina.interfaces import IFolder
 from guillotina.interfaces import IItem
 from guillotina.behaviors.dublincore import IDublinCore
@@ -17,12 +19,10 @@ from guillotina_processing.utils import iterate_over_resources
 from guillotina_cms.interfaces import IDocument
 from guillotina._cache import FACTORY_CACHE
 
-from guillotina import app_settings
 from guillotina.component import query_utility
 from guillotina.interfaces import ICatalogUtility
 
-from guillotina.utils import resolve_dotted_name
-from guillotina.utils import get_object_by_oid
+from guillotina.utils import get_object_by_uid
 
 
 @configure.adapter(
@@ -75,7 +75,7 @@ class TypeIterator(object):
             if ids:
                 yield obj_id
             else:
-                yield await get_object_by_oid(obj_id)
+                yield await get_object_by_uid(obj_id)
 
 
 @configure.adapter(
@@ -86,22 +86,21 @@ class SearchIterator(object):
     def __init__(self, context):
         self.context = context
         self.search = None
-        self.container = None
+        self.container = find_container(self.context)
+        self.query = None
         self.utility = query_utility(ICatalogUtility)
 
     def set_search(self, search):
         if self.container is None:
             raise KeyError('Container needed to be defined')
         self.search = search
-        parser = resolve_dotted_name(app_settings['search_parser'])
-        self.call_params, _ = parser(None, self.context)(
-            get_params=self.search, container=self.container)
+        self.parsed_query = parse_query(self.context, self.search, self.utility)
 
     def set_container(self, container):
         self.container = container
 
     async def total(self):
-        result = await self.utility.get_by_path(**self.call_params)
+        result = await self.utility.search(self.container, self.parsed_query)
         return result['items_count']
 
     async def __call__(self, ids=False):
@@ -111,20 +110,22 @@ class SearchIterator(object):
         if self.container is None:
             yield []
 
+        result = await self.utilty.search(self.container, self.parsed_query)
+
         from_ = 0
 
-        self.call_params['query']['from'] = from_
-        result = await self.utility.get_by_path(**self.call_params)
+        self.parsed_query['query']['from'] = from_
+        result = await self.utility.query(self.context, **self.call_params)
         while len(result['member']) > 0:
             for member in result['member']:
                 if ids:
                     yield member['uuid']
                 else:
-                    obj = await get_object_by_oid(member['uuid'])
+                    obj = await get_object_by_uid(member['uuid'])
                     yield obj
             from_ += len(result['member'])
-            self.call_params['query']['from'] = from_
-            result = await self.utility.get_by_path(**self.call_params)
+            self.parsed_query['query']['from'] = from_
+            result = await self.utility.search(**self.call_params)
 
 
 @configure.adapter(

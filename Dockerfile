@@ -28,9 +28,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m ipykernel.kernelspec
 RUN python -m nltk.downloader stopwords
 
-COPY guillotina_processing/* ./
+ADD guillotina_processing .
 
-RUN python setup.py develop
+RUN  python setup.py develop
 
 RUN mkdir /app
 RUN mkdir /root/.jupyter
